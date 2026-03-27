@@ -159,7 +159,7 @@
                     <i data-lucide="check-circle-2" class="w-8 h-8 text-green-600"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-800 mb-2">¡Guardado con éxito!</h3>
-                <p class="text-gray-600 mb-6">La información se envió a tu hoja de cálculo.</p>
+                <p class="text-gray-600 mb-6">Tu información fue enviada correctamente.</p>
                 <button onclick="reiniciarFormulario()" class="w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-xl hover:bg-blue-200 transition-colors">
                     Registrar nuevo
                 </button>
@@ -257,8 +257,8 @@
                     <li><strong>Fecha:</strong> ${fecha}</li>
                     <li><strong>Unidad:</strong> ${datosParaEnviar.unidad}</li>
                     <li><strong>Litros Cargados:</strong> <span class="text-red-600 font-bold">-${datosParaEnviar.litros} Lts</span></li>
-                    <li><strong>Recibe:</strong> ${datosParaEnviar.nombre}</li>
-                    <li><strong>Responsabilidad:</strong> ${datosParaEnviar.responsabilidad}</li>
+                    <li><strong>Nombre quien recargo</strong> ${datosParaEnviar.nombre}</li>
+                    <li><strong>Rol:</strong> ${datosParaEnviar.responsabilidad}</li>
                 `;
             } else {
                 datosParaEnviar.tambos = document.getElementById('tambos').value.trim();
