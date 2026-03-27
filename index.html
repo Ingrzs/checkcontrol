@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Diésel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos de Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Estilos base para mejorar la experiencia en móvil */
+        input, select {
+            font-size: 16px !important; /* Evita el zoom automático en iOS */
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-10">
+
+    <div class="max-w-md mx-auto bg-white min-h-screen sm:min-h-0 sm:mt-10 sm:rounded-2xl sm:shadow-xl overflow-hidden relative">
+        
+        <!-- Encabezado -->
+        <div class="bg-blue-600 text-white p-6 text-center shadow-md">
+            <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
+                <i data-lucide="fuel" class="w-7 h-7"></i>
+                Registro de Diésel
+            </h1>
+            <p class="text-blue-100 text-sm mt-1">Control de recargas y compras</p>
+        </div>
+
+        <!-- Contenedor Principal -->
+        <div class="p-6">
+            
+            <!-- FORMULARIO -->
+            <form id="dieselForm" class="space-y-5">
+                
+                <!-- Campo Fecha -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha</label>
+                    <input type="date" id="fecha" required 
+                        class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                </div>
+
+                <!-- Tipo de Movimiento -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Movimiento</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipo" value="recarga" class="peer sr-only" checked onchange="toggleFields()">
+                            <div class="p-3 text-center border-2 border-gray-200 rounded-xl peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 font-medium transition-all">
+                                <i data-lucide="arrow-up-right" class="w-5 h-5 mx-auto mb-1 text-orange-500"></i>
+                                Recarga
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipo" value="compra" class="peer sr-only" onchange="toggleFields()">
+                            <div class="p-3 text-center border-2 border-gray-200 rounded-xl peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 font-medium transition-all">
+                                <i data-lucide="arrow-down-left" class="w-5 h-5 mx-auto mb-1 text-green-500"></i>
+                                Compra
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- CAMPOS PARA RECARGA -->
+                <div id="seccionRecarga" class="space-y-4 fade-in block">
+                    <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                        <h3 class="text-sm font-bold text-orange-800 mb-3 uppercase tracking-wider">Datos de salida (Consumo)</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
+                                <input type="text" id="unidad" placeholder="Ej. Camión 01" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total de litros cargados</label>
+                                <div class="relative">
+                                    <input type="number" id="litros" placeholder="0" min="1" step="0.1" class="w-full p-3 pl-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                                    <span class="absolute right-4 top-3.5 text-gray-400 font-medium">Lts</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la persona</label>
+                                <input type="text" id="nombre" placeholder="Ej. Carlos" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Responsabilidad</label>
+                                <input type="text" id="responsabilidad" placeholder="Guardia, o Servicio" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CAMPOS PARA COMPRA -->
+                <div id="seccionCompra" class="space-y-4 fade-in hidden">
+                    <div class="p-4 bg-green-50 rounded-xl border border-green-100">
+                        <h3 class="text-sm font-bold text-green-800 mb-3 uppercase tracking-wider">Datos de entrada (Inventario)</h3>
+                        <p class="text-xs text-green-600 mb-3">* Recuerda: 1 Tambo = 200 Litros</p>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total de tambos comprados</label>
+                                <input type="number" id="tambos" placeholder="0" min="1" step="0.5" oninput="calcularLitrosTambo()" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                                <p id="calculoTambos" class="text-sm font-semibold text-green-700 mt-2 hidden">
+                                    Total: <span id="litrosCalculados">0</span> Litros
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">¿Quién compró? <span class="text-gray-400 font-normal">(Opcional)</span></label>
+                                <input type="text" id="quien_compro" placeholder="Nombre de quien realizó la compra" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón de Revisar -->
+                <button type="button" onclick="validarYMostrarResumen()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 mt-6">
+                    <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    Revisar Información
+                </button>
+
+            </form>
+
+            <!-- SECCIÓN DE RESUMEN (Confirmación antes de enviar) -->
+            <div id="seccionResumen" class="hidden fade-in space-y-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-inner">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Resumen del registro</h3>
+                    <ul id="listaResumen" class="space-y-2 text-sm text-gray-700">
+                        <!-- El resumen se llena con JavaScript -->
+                    </ul>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="volverAEditar()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                        Editar
+                    </button>
+                    <button type="button" id="btnEnviar" onclick="enviarDatos()" class="flex-[2] bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        Confirmar y Enviar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pantallas de Estado (Cargando, Éxito, Error) -->
+            <div id="estadoCargando" class="hidden text-center py-10 fade-in">
+                <i data-lucide="loader-2" class="w-10 h-10 mx-auto text-blue-500 animate-spin mb-3"></i>
+                <p class="text-gray-600 font-medium">Guardando información...</p>
+            </div>
+
+            <div id="estadoExito" class="hidden text-center py-10 fade-in">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="check-circle-2" class="w-8 h-8 text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">¡Guardado con éxito!</h3>
+                <p class="text-gray-600 mb-6">La información se envió a tu hoja de cálculo.</p>
+                <button onclick="reiniciarFormulario()" class="w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-xl hover:bg-blue-200 transition-colors">
+                    Registrar nuevo
+                </button>
+            </div>
+
+            <div id="estadoError" class="hidden text-center py-10 fade-in">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="alert-circle" class="w-8 h-8 text-red-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Error de conexión</h3>
+                <p class="text-gray-600 mb-6" id="mensajeErrorText">Verifica tu conexión a internet o intenta de nuevo.</p>
+                <div class="flex gap-3">
+                    <button onclick="volverAEditar()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-300 transition-colors">
+                        Revisar datos
+                    </button>
+                    <button onclick="enviarDatos()" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors">
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA -->
+    <script>
+        // Inicializar iconos
+        lucide.createIcons();
+
+        // ----------------------------------------------------
+        // ¡IMPORTANTE! Reemplaza esta URL con la tuya de Google Apps Script
+        // ----------------------------------------------------
+        const GOOGLE_SCRIPT_URL = 'AQUI_PEGARAS_TU_URL_DE_GOOGLE_APPS_SCRIPT'; 
+
+        let datosParaEnviar = {};
+
+        // Cargar fecha actual al iniciar
+        window.onload = () => {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = hoy;
+        };
+
+        // Mostrar/Ocultar campos según el tipo
+        function toggleFields() {
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const secRecarga = document.getElementById('seccionRecarga');
+            const secCompra = document.getElementById('seccionCompra');
+
+            if (tipo === 'recarga') {
+                secRecarga.classList.remove('hidden');
+                secCompra.classList.add('hidden');
+            } else {
+                secRecarga.classList.add('hidden');
+                secCompra.classList.remove('hidden');
+            }
+        }
+
+        // Lógica: 1 Tambo = 200 Litros
+        function calcularLitrosTambo() {
+            const tambos = parseFloat(document.getElementById('tambos').value) || 0;
+            const litros = tambos * 200;
+            const calculoTexto = document.getElementById('calculoTambos');
+            const litrosCalculadosSpan = document.getElementById('litrosCalculados');
+            
+            if (tambos > 0) {
+                calculoTexto.classList.remove('hidden');
+                litrosCalculadosSpan.textContent = litros.toLocaleString('es-MX');
+            } else {
+                calculoTexto.classList.add('hidden');
+            }
+        }
+
+        // Validar y armar el resumen
+        function validarYMostrarResumen() {
+            const fecha = document.getElementById('fecha').value;
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+
+            if (!fecha) return alert("Por favor ingresa la fecha.");
+
+            datosParaEnviar = { fecha, tipo };
+
+            if (tipo === 'recarga') {
+                datosParaEnviar.unidad = document.getElementById('unidad').value.trim();
+                datosParaEnviar.litros = document.getElementById('litros').value.trim();
+                datosParaEnviar.nombre = document.getElementById('nombre').value.trim();
+                datosParaEnviar.responsabilidad = document.getElementById('responsabilidad').value.trim();
+
+                if (!datosParaEnviar.unidad || !datosParaEnviar.litros || !datosParaEnviar.nombre || !datosParaEnviar.responsabilidad) {
+                    return alert("Para RECARGA, todos los campos son obligatorios.");
+                }
+                
+                // Generar HTML del resumen para recarga
+                document.getElementById('listaResumen').innerHTML = `
+                    <li><strong>Acción:</strong> <span class="text-orange-600 font-bold">RECARGA (Salida)</span></li>
+                    <li><strong>Fecha:</strong> ${fecha}</li>
+                    <li><strong>Unidad:</strong> ${datosParaEnviar.unidad}</li>
+                    <li><strong>Litros Cargados:</strong> <span class="text-red-600 font-bold">-${datosParaEnviar.litros} Lts</span></li>
+                    <li><strong>Recibe:</strong> ${datosParaEnviar.nombre}</li>
+                    <li><strong>Responsabilidad:</strong> ${datosParaEnviar.responsabilidad}</li>
+                `;
+            } else {
+                datosParaEnviar.tambos = document.getElementById('tambos').value.trim();
+                datosParaEnviar.quien_compro = document.getElementById('quien_compro').value.trim() || 'No especificado';
+                
+                if (!datosParaEnviar.tambos) {
+                    return alert("Para COMPRA, debes especificar la cantidad de tambos.");
+                }
+
+                datosParaEnviar.litrosTotalesCompra = parseFloat(datosParaEnviar.tambos) * 200;
+
+                // Generar HTML del resumen para compra
+                document.getElementById('listaResumen').innerHTML = `
+                    <li><strong>Acción:</strong> <span class="text-green-600 font-bold">COMPRA (Entrada)</span></li>
+                    <li><strong>Fecha:</strong> ${fecha}</li>
+                    <li><strong>Tambos comprados:</strong> ${datosParaEnviar.tambos}</li>
+                    <li><strong>Total en Litros:</strong> <span class="text-green-600 font-bold">+${datosParaEnviar.litrosTotalesCompra} Lts</span> <span class="text-xs text-gray-500">(Calculado a 200L/Tambo)</span></li>
+                    <li><strong>Compró:</strong> ${datosParaEnviar.quien_compro}</li>
+                `;
+            }
+
+            // Ocultar form, mostrar resumen
+            document.getElementById('dieselForm').classList.add('hidden');
+            document.getElementById('seccionResumen').classList.remove('hidden');
+        }
+
+        function volverAEditar() {
+            document.getElementById('seccionResumen').classList.add('hidden');
+            document.getElementById('estadoError').classList.add('hidden');
+            document.getElementById('dieselForm').classList.remove('hidden');
+        }
+
+        function reiniciarFormulario() {
+            document.getElementById('dieselForm').reset();
+            document.getElementById('estadoExito').classList.add('hidden');
+            document.getElementById('dieselForm').classList.remove('hidden');
+            toggleFields(); // Resetear vista
+            
+            // Volver a poner la fecha de hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = hoy;
+            document.getElementById('calculoTambos').classList.add('hidden');
+        }
+
+        async function enviarDatos() {
+            // Verificar si configuraron la URL
+            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxgG-JEZ2EyNbEmyvw_Qn8wFC-qkPQcv-SHnAi1SIyYl-vHNjHHg-TSIiPjg4ARFhlSJg/exec') {
+                alert("⚠️ AÚN FALTA CONFIGURAR TU ENLACE. Sigue las instrucciones para pegar tu enlace de Google Sheets en el código HTML.");
+                return;
+            }
+
+            // Ocultar resumen, mostrar cargando
+            document.getElementById('seccionResumen').classList.add('hidden');
+            document.getElementById('estadoError').classList.add('hidden');
+            document.getElementById('estadoCargando').classList.remove('hidden');
+
+            try {
+                // El envío se hace sin mode 'no-cors' para poder leer el resultado si el script está bien configurado
+                // Si tienes problemas de CORS en Github, usa mode: 'no-cors' pero perderás la confirmación exacta
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // text/plain evita problemas de CORS preflight
+                    body: JSON.stringify(datosParaEnviar)
+                });
+
+                document.getElementById('estadoCargando').classList.add('hidden');
+                document.getElementById('estadoExito').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error al enviar:", error);
+                document.getElementById('estadoCargando').classList.add('hidden');
+                document.getElementById('estadoError').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
